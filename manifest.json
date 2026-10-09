@@ -1,0 +1,10 @@
+{
+  "name": "roamly · 旅行英语",
+  "short_name": "roamly",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "给出国旅行者的免费英语交流练习",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
