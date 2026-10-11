@@ -1,230 +1,227 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Roamly" />
-    <meta name="description" content="给出国旅行者的免费英语练习 PWA" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="icon.svg" type="image/svg+xml" />
-    <title>Roamly · 旅行英语</title>
-    <style>
-      :root {
-        --ink: #f7f8fb;
-        --muted: #91a0b9;
-        --night: #0f172a;
-        --night-2: #131f38;
-        --panel: #17243f;
-        --panel-2: #1d2d4d;
-        --line: rgba(255,255,255,.09);
-        --coral: #ff7660;
-        --coral-soft: #ffad99;
-        --teal: #5de1c0;
-        --yellow: #ffd56b;
-        --shadow: 0 18px 48px rgba(4, 10, 26, .35);
-      }
-      * { box-sizing: border-box; }
-      html { min-height: 100%; background: var(--night); }
-      body {
-        margin: 0;
-        min-width: 320px;
-        min-height: 100vh;
-        background: radial-gradient(circle at 80% -10%, #263b65 0%, transparent 44%), var(--night);
-        color: var(--ink);
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "PingFang SC", "Helvetica Neue", sans-serif;
-        letter-spacing: -.01em;
-      }
-      button { font: inherit; color: inherit; border: 0; cursor: pointer; }
-      button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
-      .app-shell { width: min(100%, 520px); margin: 0 auto; min-height: 100vh; padding: env(safe-area-inset-top) 16px calc(104px + env(safe-area-inset-bottom)); }
-      .topbar { display: flex; justify-content: space-between; align-items: center; padding: 18px 2px 12px; }
-      .brand { display: flex; gap: 9px; align-items: center; font-weight: 800; font-size: 21px; letter-spacing: -.04em; }
-      .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 12px; color: #0f172a; background: var(--coral); box-shadow: 0 8px 22px rgba(255,118,96,.25); }
-      .brand-mark svg { width: 21px; height: 21px; }
-      .top-actions { display: flex; gap: 8px; }
-      .ghost-icon { width: 38px; height: 38px; background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 13px; display: grid; place-items: center; color: var(--muted); }
-      .ghost-icon:hover { color: var(--ink); background: rgba(255,255,255,.12); }
-      .ghost-icon svg { width: 18px; height: 18px; }
-      .view { display: none; animation: rise .35s ease both; }
-      .view.active { display: block; }
-      @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-      .eyebrow { color: var(--coral-soft); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-      h1, h2, h3, p { margin: 0; }
-      h1 { font-size: clamp(30px, 8vw, 40px); line-height: 1.05; letter-spacing: -.06em; }
-      h2 { font-size: 21px; letter-spacing: -.04em; }
-      h3 { font-size: 17px; letter-spacing: -.03em; }
-      .hero { padding: 10px 2px 22px; display: flex; justify-content: space-between; align-items: end; gap: 16px; }
-      .hero p { color: var(--muted); margin-top: 9px; font-size: 15px; line-height: 1.45; max-width: 270px; }
-      .streak { width: 76px; height: 76px; flex: 0 0 auto; position: relative; display: grid; place-items: center; }
-      .streak svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-      .streak circle { fill: none; stroke-width: 7; stroke-linecap: round; }
-      .streak .track { stroke: rgba(255,255,255,.1); }
-      .streak .value { stroke: var(--yellow); stroke-dasharray: 176; stroke-dashoffset: 36; }
-      .streak span { position: relative; font-weight: 800; font-size: 19px; }
-      .streak small { display: block; color: var(--muted); font-size: 10px; font-weight: 600; text-align: center; margin-top: 1px; }
-      .card { background: linear-gradient(135deg, rgba(29,45,77,.97), rgba(23,36,63,.97)); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); }
-      .today-card { padding: 18px; position: relative; overflow: hidden; }
-      .today-card::after { content: ""; position: absolute; width: 180px; height: 180px; border-radius: 50%; right: -68px; top: -86px; background: rgba(93,225,192,.11); }
-      .today-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-      .pill { display: inline-flex; align-items: center; gap: 6px; color: var(--teal); font-size: 12px; font-weight: 800; background: rgba(93,225,192,.11); border-radius: 999px; padding: 7px 10px; }
-      .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(93,225,192,.12); }
-      .today-card h2 { margin-top: 16px; }
-      .today-card .desc { color: var(--muted); font-size: 14px; margin-top: 7px; }
-      .progress-row { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; font-size: 12px; color: var(--muted); }
-      .progress-row strong { color: var(--ink); font-size: 13px; }
-      .progress-track { height: 9px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin-top: 8px; }
-      .progress-fill { height: 100%; width: 42%; border-radius: inherit; background: linear-gradient(90deg, var(--coral), var(--yellow)); transition: width .5s cubic-bezier(.22,1,.36,1); }
-      .primary-btn { min-height: 47px; padding: 0 17px; margin-top: 18px; border-radius: 15px; background: var(--coral); color: #21121a; font-weight: 800; box-shadow: 0 10px 20px rgba(255,118,96,.2); transition: transform .2s, filter .2s; }
-      .primary-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
-      .primary-btn:active { transform: translateY(1px); }
-      .section-head { display:flex; justify-content:space-between; align-items:center; margin: 28px 2px 12px; }
-      .section-head button { color: var(--coral-soft); background: none; font-size: 13px; font-weight: 700; }
-      .section-head button:hover { color: var(--ink); }
-      .path { display: grid; gap: 11px; }
-      .path-item { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 13px; padding: 13px; background: rgba(23,36,63,.8); border: 1px solid var(--line); border-radius: 19px; text-align: left; transition: transform .2s, border-color .2s, background .2s; }
-      .path-item:hover { transform: translateX(3px); border-color: rgba(255,118,96,.35); background: var(--panel-2); }
-      .path-icon { width: 46px; height: 46px; border-radius: 15px; display:grid; place-items:center; background: rgba(255,255,255,.07); color: var(--muted); font-size: 21px; }
-      .path-item.done .path-icon { background: rgba(93,225,192,.13); color: var(--teal); }
-      .path-item.current .path-icon { background: var(--coral); color: #28151c; box-shadow: 0 8px 18px rgba(255,118,96,.22); }
-      .path-copy strong { display:block; font-size: 15px; }
-      .path-copy span { display:block; color:var(--muted); font-size: 12px; margin-top: 4px; }
-      .path-score { font-size: 12px; color: var(--muted); }
-      .path-item.current .path-score { color: var(--yellow); font-weight: 800; }
-      .mini-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-top: 12px; }
-      .mini-stat { padding: 14px 12px; border-radius: 17px; background: rgba(255,255,255,.055); border: 1px solid var(--line); }
-      .mini-stat strong { display:block; font-size: 19px; }
-      .mini-stat span { color: var(--muted); font-size: 11px; margin-top: 4px; display:block; }
-      .practice-top { padding: 10px 2px 17px; }
-      .practice-top p { color: var(--muted); margin-top: 8px; font-size: 15px; line-height: 1.45; }
-      .game-card { padding: 18px; margin-top: 2px; }
-      .game-meta { display: flex; justify-content: space-between; align-items:center; color: var(--muted); font-size: 12px; }
-      .game-meta strong { color: var(--yellow); font-size: 13px; }
-      .prompt { text-align: center; padding: 22px 0 17px; }
-      .prompt .label { color: var(--muted); font-size: 12px; }
-      .prompt h2 { font-size: 29px; margin-top: 7px; }
-      .prompt p { color: var(--coral-soft); font-size: 14px; margin-top: 4px; }
-      .tiles { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-      .tile { min-height: 74px; background: #223454; border: 1px solid rgba(255,255,255,.08); border-bottom: 3px solid #17253e; border-radius: 16px; padding: 12px; text-align:left; transition: transform .2s, background .2s, border-color .2s; }
-      .tile:hover { transform: translateY(-2px); background: #2b4268; }
-      .tile.selected { background: rgba(255,118,96,.17); border-color: var(--coral); color: var(--coral-soft); }
-      .tile.matched { background: rgba(93,225,192,.12); border-color: var(--teal); color: var(--teal); animation: pop .3s ease; pointer-events: none; }
-      .tile.wrong { animation: shake .3s ease; border-color: #ff9e90; }
-      .tile small { display:block; color: var(--muted); font-size: 11px; margin-bottom: 6px; }
-      .tile b { display:block; font-size: 15px; }
-      @keyframes pop { 50% { transform: scale(1.04); } }
-      @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-      .game-footer { display:flex; justify-content:space-between; align-items:center; margin-top: 16px; color: var(--muted); font-size: 12px; }
-      .game-footer button { background: none; color: var(--coral-soft); font-weight: 700; }
-      .tip { padding: 13px 14px; margin-top: 12px; background: rgba(255,213,107,.08); border: 1px solid rgba(255,213,107,.12); border-radius: 14px; color: #f6dda0; font-size: 12px; line-height: 1.5; }
-      .vocab-grid { display:grid; gap: 11px; }
-      .vocab-card { padding: 16px; display:flex; align-items:center; gap: 13px; }
-      .vocab-icon { width: 44px; height: 44px; border-radius: 14px; display:grid; place-items:center; background: rgba(255,118,96,.12); font-size: 20px; }
-      .vocab-card strong { font-size: 15px; }
-      .vocab-card p { color: var(--muted); font-size: 12px; margin-top: 4px; }
-      .vocab-card .count { margin-left:auto; color: var(--teal); font-size:12px; font-weight:700; }
-      .profile-card { padding: 22px; text-align:center; }
-      .avatar { width: 74px; height:74px; display:grid; place-items:center; margin:0 auto 12px; border-radius:26px; color:#201923; background: linear-gradient(135deg, var(--yellow), var(--coral)); font-size:30px; box-shadow: 0 12px 24px rgba(255,118,96,.2); }
-      .profile-card p { color:var(--muted); font-size:13px; margin-top:6px; }
-      .profile-list { margin-top: 13px; display:grid; gap: 8px; }
-      .profile-row { display:flex; align-items:center; justify-content:space-between; padding: 14px; background:rgba(255,255,255,.055); border:1px solid var(--line); border-radius:15px; text-align:left; }
-      .profile-row span { color:var(--muted); font-size:13px; }
-      .profile-row strong { font-size:14px; }
-      .bottom-nav { position: fixed; z-index: 5; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 520px); padding: 11px 15px calc(11px + env(safe-area-inset-bottom)); background: rgba(15,23,42,.88); backdrop-filter: blur(20px); border-top:1px solid var(--line); display:grid; grid-template-columns: repeat(4,1fr); gap:5px; }
-      .nav-item { background:none; color:var(--muted); display:flex; flex-direction:column; gap:5px; align-items:center; font-size:11px; font-weight:700; padding:5px 0; }
-      .nav-item svg { width:20px; height:20px; }
-      .nav-item.active { color:var(--coral-soft); }
-      .nav-item.active svg { filter: drop-shadow(0 0 8px rgba(255,118,96,.35)); }
-      .toast { position: fixed; z-index: 10; bottom: calc(86px + env(safe-area-inset-bottom)); left:50%; transform: translate(-50%, 20px); opacity:0; pointer-events:none; background: #f7f8fb; color:#192238; padding: 12px 16px; border-radius: 14px; box-shadow: var(--shadow); font-size:13px; font-weight:700; transition: .3s; white-space:nowrap; }
-      .toast.show { opacity:1; transform: translate(-50%, 0); }
-      .modal-backdrop { position:fixed; inset:0; z-index:9; display:none; place-items:end center; background: rgba(3,7,18,.66); backdrop-filter: blur(8px); }
-      .modal-backdrop.show { display:grid; }
-      .modal { width:min(100%,520px); padding: 19px 17px calc(20px + env(safe-area-inset-bottom)); background:#17243f; border-radius: 27px 27px 0 0; border:1px solid var(--line); animation: sheet .3s ease both; }
-      @keyframes sheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
-      .modal-handle { width: 40px; height:4px; background:rgba(255,255,255,.2); border-radius:99px; margin:0 auto 18px; }
-      .modal h2 { font-size:22px; }
-      .modal p { color:var(--muted); font-size:14px; line-height:1.55; margin-top:8px; }
-      .modal .steps { margin: 16px 0 18px; display:grid; gap:10px; }
-      .step { display:flex; gap:11px; align-items:flex-start; color:#c8d0df; font-size:13px; line-height:1.45; }
-      .step i { width: 24px; height:24px; display:grid; place-items:center; flex:0 0 auto; color:#231a1d; background:var(--yellow); border-radius:50%; font-size:12px; font-style:normal; font-weight:800; }
-      @media (min-width: 700px) { body { padding: 24px 0; } .app-shell { border:1px solid var(--line); border-radius:30px; min-height: calc(100vh - 48px); background: rgba(15,23,42,.55); } .bottom-nav { bottom:24px; border-radius: 0 0 30px 30px; } }
-    </style>
-  </head>
-  <body>
-    <main class="app-shell">
-      <header class="topbar">
-        <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 16.5 9.5 6 13 14l2.2-5 4.8 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>roamly</div>
-        <div class="top-actions"><button class="ghost-icon" id="installBtn" aria-label="查看添加到主屏幕说明"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V17" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ghost-icon" id="notifyBtn" aria-label="显示每日提醒"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Roamly" />
+  <meta name="description" content="Roamly 旅行英语：6240 句完整场景课程" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>Roamly · 旅行英语</title>
+  <style>
+    :root { --ink:#f7f8fb; --muted:#94a3bd; --night:#0f172a; --panel:#17243f; --panel2:#203354; --line:rgba(255,255,255,.1); --coral:#ff7660; --coral2:#ffad99; --teal:#5de1c0; --yellow:#ffd56b; --danger:#fb7185; --shadow:0 18px 48px rgba(4,10,26,.34); }
+    * { box-sizing:border-box; }
+    html { min-height:100%; background:var(--night); }
+    body { margin:0; min-width:320px; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 78% -12%,#263d68 0,transparent 43%),var(--night); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","PingFang SC","Helvetica Neue",sans-serif; letter-spacing:-.01em; }
+    button,input { font:inherit; }
+    button { color:inherit; border:0; cursor:pointer; }
+    button:focus-visible,input:focus-visible { outline:3px solid var(--yellow); outline-offset:3px; }
+    .app-shell { width:min(100%,620px); min-height:100vh; margin:0 auto; padding:env(safe-area-inset-top) 16px calc(100px + env(safe-area-inset-bottom)); }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 2px 12px; position:sticky; top:0; z-index:4; background:linear-gradient(var(--night),rgba(15,23,42,.82)); backdrop-filter:blur(14px); }
+    .brand { display:flex; align-items:center; gap:9px; font-size:21px; font-weight:850; letter-spacing:-.05em; background:none; padding:0; }
+    .brand-mark { width:34px; height:34px; display:grid; place-items:center; border-radius:12px; color:#201923; background:var(--coral); box-shadow:0 8px 22px rgba(255,118,96,.25); }
+    .brand-mark svg { width:21px; height:21px; }
+    .top-actions { display:flex; gap:8px; }
+    .icon-btn,.back-btn { width:38px; height:38px; display:grid; place-items:center; background:rgba(255,255,255,.07); border:1px solid var(--line); border-radius:13px; color:var(--muted); }
+    .icon-btn:hover,.back-btn:hover { color:var(--ink); background:rgba(255,255,255,.13); }
+    .icon-btn svg,.back-btn svg { width:18px; height:18px; }
+    .view { display:none; animation:rise .3s ease both; }
+    .view.active { display:block; }
+    @keyframes rise { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:clamp(30px,8vw,42px); line-height:1.05; letter-spacing:-.065em; }
+    h2 { font-size:22px; letter-spacing:-.045em; }
+    h3 { font-size:16px; letter-spacing:-.025em; }
+    .eyebrow { color:var(--coral2); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .muted { color:var(--muted); }
+    .hero { display:flex; align-items:end; justify-content:space-between; gap:15px; padding:12px 2px 22px; }
+    .hero p,.intro p { max-width:380px; color:var(--muted); font-size:15px; line-height:1.5; margin-top:10px; }
+    .streak { width:78px; height:78px; flex:0 0 auto; display:grid; place-items:center; position:relative; }
+    .streak svg { position:absolute; inset:0; transform:rotate(-90deg); }
+    .streak circle { fill:none; stroke-width:7; stroke-linecap:round; }
+    .streak .track { stroke:rgba(255,255,255,.1); }
+    .streak .value { stroke:var(--yellow); stroke-dasharray:176; stroke-dashoffset:38; }
+    .streak div { position:relative; text-align:center; font-weight:800; }
+    .streak strong { display:block; font-size:20px; }
+    .streak small { display:block; color:var(--muted); font-size:10px; margin-top:1px; }
+    .card { background:linear-gradient(135deg,rgba(29,45,77,.98),rgba(23,36,63,.98)); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); }
+    .task-card { padding:18px; position:relative; overflow:hidden; }
+    .task-card:after { content:""; position:absolute; width:190px; height:190px; right:-75px; top:-95px; border-radius:50%; background:rgba(93,225,192,.1); }
+    .task-head,.row-between { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; color:var(--teal); background:rgba(93,225,192,.11); font-size:12px; font-weight:800; }
+    .pulse { width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(93,225,192,.12); }
+    .task-card h2 { margin-top:16px; }
+    .task-card .desc { color:var(--muted); font-size:14px; margin-top:7px; }
+    .progress-row { display:flex; justify-content:space-between; align-items:center; margin-top:20px; color:var(--muted); font-size:12px; }
+    .progress-row strong { color:var(--ink); }
+    .progress-track { height:9px; margin-top:8px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.08); }
+    .progress-fill { height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--coral),var(--yellow)); transition:width .45s ease; }
+    .primary-btn { min-height:46px; padding:0 17px; margin-top:17px; border-radius:15px; color:#24151a; background:var(--coral); font-weight:850; box-shadow:0 10px 20px rgba(255,118,96,.2); transition:transform .18s,filter .18s; }
+    .primary-btn:hover { transform:translateY(-2px); filter:brightness(1.05); }
+    .secondary-btn { min-height:42px; padding:0 14px; border:1px solid var(--line); border-radius:13px; color:var(--coral2); background:rgba(255,255,255,.055); font-weight:750; }
+    .secondary-btn:hover { background:rgba(255,255,255,.11); }
+    .section-head { display:flex; align-items:center; justify-content:space-between; margin:28px 2px 12px; }
+    .section-head button,.text-btn { padding:0; color:var(--coral2); background:none; font-size:13px; font-weight:800; }
+    .section-head button:hover,.text-btn:hover { color:var(--ink); }
+    .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px; }
+    .stat { padding:14px 12px; border:1px solid var(--line); border-radius:17px; background:rgba(255,255,255,.055); }
+    .stat strong { display:block; font-size:19px; }
+    .stat span { display:block; color:var(--muted); font-size:11px; margin-top:4px; }
+    .scene-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+    .scene-card { min-height:144px; padding:15px; text-align:left; border:1px solid var(--line); border-radius:20px; color:var(--ink); background:rgba(23,36,63,.82); transition:transform .18s,border-color .18s,background .18s; }
+    .scene-card:hover { transform:translateY(-3px); border-color:rgba(255,255,255,.25); background:var(--panel2); }
+    .scene-icon { width:40px; height:40px; display:grid; place-items:center; border-radius:14px; font-size:21px; background:rgba(255,255,255,.08); }
+    .scene-card h3 { margin-top:13px; }
+    .scene-card p { color:var(--muted); font-size:12px; line-height:1.4; margin-top:5px; }
+    .scene-meta { display:flex; justify-content:space-between; gap:8px; margin-top:12px; color:var(--muted); font-size:11px; }
+    .intro { padding:10px 2px 18px; }
+    .intro h1 { margin-top:5px; }
+    .search { width:100%; min-height:46px; padding:0 15px; margin:2px 0 14px; border:1px solid var(--line); border-radius:15px; outline:none; color:var(--ink); background:rgba(255,255,255,.07); }
+    .search::placeholder { color:#71809a; }
+    .course-detail-head { display:flex; align-items:flex-start; gap:12px; padding:7px 0 18px; }
+    .course-detail-head .scene-icon { flex:0 0 auto; width:48px; height:48px; }
+    .course-detail-head h1 { font-size:30px; margin-top:3px; }
+    .course-detail-head p { color:var(--muted); font-size:13px; line-height:1.45; margin-top:6px; }
+    .lesson-list { display:grid; gap:10px; }
+    .lesson-row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:13px; border:1px solid var(--line); border-radius:18px; text-align:left; background:rgba(23,36,63,.82); }
+    .lesson-number { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:var(--coral2); background:rgba(255,118,96,.12); font-weight:850; }
+    .lesson-row.done .lesson-number { color:var(--teal); background:rgba(93,225,192,.12); }
+    .lesson-row strong { display:block; font-size:15px; }
+    .lesson-row span { display:block; color:var(--muted); font-size:12px; margin-top:4px; }
+    .lesson-row .open-lesson { min-height:34px; padding:0 10px; border-radius:10px; color:var(--coral2); background:rgba(255,255,255,.06); font-size:12px; font-weight:800; }
+    .lesson-hero { padding:7px 2px 18px; }
+    .lesson-hero h1 { font-size:31px; margin-top:6px; }
+    .lesson-hero p { color:var(--muted); font-size:14px; line-height:1.5; margin-top:8px; }
+    .lesson-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .sentence-list { display:grid; gap:10px; margin-top:13px; }
+    .sentence-card { padding:15px; }
+    .sentence-top { display:flex; align-items:flex-start; justify-content:space-between; gap:9px; }
+    .sentence-card .en { font-size:16px; line-height:1.4; font-weight:780; }
+    .sentence-card .zh { color:var(--coral2); font-size:13px; line-height:1.45; margin-top:5px; }
+    .sentence-card .tip { color:var(--muted); font-size:11px; margin-top:9px; }
+    .sentence-tools { display:flex; gap:5px; flex:0 0 auto; }
+    .mini-btn { width:32px; height:32px; display:grid; place-items:center; border:1px solid var(--line); border-radius:10px; color:var(--muted); background:rgba(255,255,255,.05); }
+    .mini-btn.active,.mini-btn:hover { color:var(--yellow); border-color:rgba(255,213,107,.4); }
+    .practice-card { padding:18px; }
+    .practice-q { padding:20px 4px 18px; text-align:center; }
+    .practice-q .label { color:var(--muted); font-size:12px; }
+    .practice-q h2 { font-size:25px; line-height:1.25; margin-top:8px; }
+    .practice-q p { color:var(--coral2); font-size:14px; margin-top:8px; }
+    .answer-list { display:grid; gap:9px; }
+    .answer { padding:13px 14px; border:1px solid var(--line); border-radius:14px; color:var(--ink); background:#223454; text-align:left; line-height:1.4; }
+    .answer:hover { background:#2c446b; }
+    .answer.correct { border-color:var(--teal); background:rgba(93,225,192,.14); color:var(--teal); }
+    .answer.wrong { border-color:var(--danger); background:rgba(251,113,133,.14); }
+    .feedback { min-height:22px; color:var(--muted); font-size:13px; text-align:center; margin-top:13px; }
+    .feedback.good { color:var(--teal); }
+    .feedback.bad { color:var(--coral2); }
+    .vocab-tabs { display:flex; gap:8px; overflow:auto; margin-bottom:12px; }
+    .tab-btn { flex:0 0 auto; min-height:35px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.055); font-size:12px; font-weight:800; }
+    .tab-btn.active { color:#21151b; border-color:var(--coral); background:var(--coral); }
+    .empty { padding:30px 16px; color:var(--muted); text-align:center; border:1px dashed var(--line); border-radius:18px; }
+    .profile-card { padding:21px; text-align:center; }
+    .avatar { width:72px; height:72px; display:grid; place-items:center; margin:0 auto 12px; border-radius:25px; color:#21151b; background:linear-gradient(135deg,var(--yellow),var(--coral)); font-size:29px; box-shadow:0 12px 24px rgba(255,118,96,.2); }
+    .profile-card p { color:var(--muted); font-size:13px; margin-top:6px; }
+    .profile-list { display:grid; gap:8px; margin-top:16px; }
+    .profile-row { display:flex; justify-content:space-between; gap:10px; padding:13px 14px; border:1px solid var(--line); border-radius:14px; text-align:left; background:rgba(255,255,255,.05); }
+    .profile-row span { color:var(--muted); font-size:13px; }
+    .profile-row strong { font-size:14px; }
+    .settings-list { display:grid; gap:10px; margin-top:14px; }
+    .setting-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.055); }
+    .setting-row strong { display:block; font-size:14px; }
+    .setting-row span { display:block; color:var(--muted); font-size:12px; margin-top:4px; }
+    .switch { width:44px; height:25px; padding:3px; border-radius:99px; background:#394967; }
+    .switch:after { content:""; display:block; width:19px; height:19px; border-radius:50%; background:#b7c1d2; transition:transform .2s,background .2s; }
+    .switch.on { background:rgba(93,225,192,.4); }
+    .switch.on:after { transform:translateX(19px); background:var(--teal); }
+    .bottom-nav { position:fixed; z-index:5; left:50%; bottom:0; transform:translateX(-50%); width:min(100%,620px); display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:rgba(15,23,42,.9); backdrop-filter:blur(20px); }
+    .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; padding:5px 0; color:var(--muted); background:none; font-size:11px; font-weight:800; }
+    .nav-item svg { width:20px; height:20px; }
+    .nav-item.active { color:var(--coral2); }
+    .toast { position:fixed; z-index:10; left:50%; bottom:calc(83px + env(safe-area-inset-bottom)); transform:translate(-50%,18px); opacity:0; pointer-events:none; padding:11px 15px; border-radius:13px; color:#172033; background:#f7f8fb; box-shadow:var(--shadow); font-size:13px; font-weight:800; transition:.25s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .modal-backdrop { position:fixed; inset:0; z-index:9; display:none; place-items:end center; background:rgba(3,7,18,.68); backdrop-filter:blur(8px); }
+    .modal-backdrop.show { display:grid; }
+    .modal { width:min(100%,620px); padding:19px 17px calc(20px + env(safe-area-inset-bottom)); border:1px solid var(--line); border-radius:27px 27px 0 0; background:var(--panel); }
+    .modal h2 { font-size:22px; }
+    .modal p { color:var(--muted); font-size:14px; line-height:1.55; margin-top:8px; }
+    @media (min-width:700px) { body { padding:24px 0; } .app-shell { min-height:calc(100vh - 48px); border:1px solid var(--line); border-radius:30px; background:rgba(15,23,42,.55); } .bottom-nav { bottom:24px; border-radius:0 0 30px 30px; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <button class="brand" data-action="home" aria-label="返回首页"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 16.5 9.5 6 13 14l2.2-5 4.8 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>roamly</button>
+      <div class="top-actions"><button class="icon-btn" data-action="install" aria-label="查看添加到主屏幕说明"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V17" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="icon-btn" data-action="reminder" aria-label="开启每日提醒"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </header>
 
-      <section class="view active" id="homeView">
-        <div class="hero"><div><div class="eyebrow">Friday · 旅行第 02 天</div><h1>今天也出发，<br/>说点英语。</h1><p>用 8 分钟练会下一段旅程真正会用到的话。</p></div><div class="streak" aria-label="连续学习 4 天"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="28"/><circle class="value" cx="38" cy="38" r="28"/></svg><div><span>4</span><small>天连续</small></div></div></div>
-        <article class="card today-card"><div class="today-head"><span class="pill"><i class="pulse"></i> 今日任务</span><span style="font-size:12px;color:var(--muted)">约 8 分钟</span></div><h2>在咖啡店自然开口</h2><p class="desc">点单、问推荐、说出你的偏好。</p><div class="progress-row"><span>今日进度</span><strong id="progressText">2 / 5 小节</strong></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><button class="primary-btn" id="continueBtn">继续学习</button></article>
-        <div class="section-head"><h2>你的旅行路线</h2><button id="showAllBtn">查看全部</button></div>
-        <div class="path">
-          <button class="path-item done"><span class="path-icon">✈︎</span><span class="path-copy"><strong>机场与入境</strong><span>问路 · 行李 · 海关</span></span><span class="path-score">已完成</span></button>
-          <button class="path-item current" id="coffeePath"><span class="path-icon">☕</span><span class="path-copy"><strong>咖啡店开口</strong><span>点单 · 偏好 · 结账</span></span><span class="path-score">进行中</span></button>
-          <button class="path-item"><span class="path-icon">⌁</span><span class="path-copy"><strong>酒店入住</strong><span>预订 · 需求 · 问题</span></span><span class="path-score">锁定</span></button>
-        </div>
-        <div class="mini-stats"><div class="mini-stat"><strong>62</strong><span>掌握词汇</span></div><div class="mini-stat"><strong>18m</strong><span>本周练习</span></div><div class="mini-stat"><strong>86%</strong><span>复习正确率</span></div></div>
-      </section>
+    <section class="view active" id="homeView">
+      <div class="hero"><div><div class="eyebrow">Travel English · 6000+ sentences</div><h1>今天也出发，<br>说点英语。</h1><p>13 个旅行场景，260 节完整课程，6760 句可以直接开口的英语。</p></div><div class="streak"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="28"/><circle class="value" cx="38" cy="38" r="28"/></svg><div><strong id="streakValue">1</strong><small>天连续</small></div></div></div>
+      <article class="card task-card"><div class="task-head"><span class="pill"><i class="pulse"></i> 今日任务</span><span class="muted" style="font-size:12px">约 8 分钟</span></div><h2 id="todayTitle">在咖啡店自然开口</h2><p class="desc" id="todayDesc">学会一组真实旅行表达。</p><div class="progress-row"><span>总课程进度</span><strong id="homeProgressText">0 / 120 节</strong></div><div class="progress-track"><div class="progress-fill" id="homeProgressFill"></div></div><button class="primary-btn" data-action="continue">继续学习</button></article>
+      <div class="section-head"><h2>你的旅行路线</h2><button data-action="courses">查看全部</button></div><div class="scene-grid" id="homeScenes"></div>
+      <div class="stat-grid"><div class="stat"><strong id="homeLearned">0</strong><span>已掌握句子</span></div><div class="stat"><strong id="homeMinutes">0m</strong><span>累计练习</span></div><div class="stat"><strong id="homeAccuracy">—</strong><span>练习正确率</span></div></div>
+    </section>
 
-      <section class="view" id="practiceView">
-        <div class="practice-top"><div class="eyebrow">Match & speak · 01</div><h1>把意思拼起来。</h1><p>像消消乐一样配对，记住旅行中能直接用的表达。</p></div>
-        <article class="card game-card"><div class="game-meta"><span>咖啡店开口 · 第 1 关</span><strong id="gameScore">0 / 4 配对</strong></div><div class="prompt"><span class="label">先选一个中文，再找它的英文</span><h2 id="promptTitle">“一杯拿铁，谢谢”</h2><p id="promptHint">请找到对应表达</p></div><div class="tiles" id="tiles"></div><div class="game-footer"><span>点击两个词块配对</span><button id="resetGame">重新开始</button></div><div class="tip">小提示：<b>I'd like…</b> 比 <b>I want…</b> 更自然、更礼貌。</div></article>
-      </section>
+    <section class="view" id="coursesView"><div class="intro"><div class="eyebrow">Complete course library</div><h1>完整课程。</h1><p>13 个场景，每个场景 20 节课，每节 26 句。点击任意场景，马上开始。</p></div><input class="search" id="courseSearch" type="search" placeholder="搜索场景，例如：酒店、购物、机场" aria-label="搜索场景"><div class="scene-grid" id="courseGrid"></div></section>
+    <section class="view" id="courseDetailView"><div id="courseDetail"></div></section>
+    <section class="view" id="lessonView"><div id="lessonDetail"></div></section>
+    <section class="view" id="practiceView"><div id="practiceDetail"></div></section>
 
-      <section class="view" id="vocabView"><div class="practice-top"><div class="eyebrow">Your phrasebook</div><h1>旅行词库。</h1><p>按场景收好，等真正需要的时候马上找到。</p></div><div class="vocab-grid"><div class="card vocab-card"><span class="vocab-icon">☕</span><span><strong>咖啡店开口</strong><p>点单与偏好 · 18 个表达</p></span><span class="count">62%</span></div><div class="card vocab-card"><span class="vocab-icon">🧳</span><span><strong>机场与行李</strong><p>入境与问路 · 26 个表达</p></span><span class="count">已完成</span></div><div class="card vocab-card"><span class="vocab-icon">🛏</span><span><strong>酒店入住</strong><p>入住与需求 · 22 个表达</p></span><span class="count">锁定</span></div><div class="card vocab-card"><span class="vocab-icon">🚕</span><span><strong>城市移动</strong><p>打车与方向 · 20 个表达</p></span><span class="count">锁定</span></div></div></section>
+    <section class="view" id="vocabView"><div class="intro"><div class="eyebrow">Your phrasebook</div><h1>我的词库。</h1><p>收藏和学会的句子会自动保存在这里，离线也能复习。</p></div><div class="vocab-tabs"><button class="tab-btn active" data-vocab-tab="all">全部句子</button><button class="tab-btn" data-vocab-tab="favorites">我的收藏</button><button class="tab-btn" data-vocab-tab="learned">已掌握</button></div><input class="search" id="vocabSearch" type="search" placeholder="搜索英文或中文句子" aria-label="搜索词库"><div class="sentence-list" id="vocabList"></div></section>
 
-      <section class="view" id="profileView"><div class="practice-top"><div class="eyebrow">Your journey</div><h1>我的旅程。</h1><p>把每一次开口，变成下一次更自在的出发。</p></div><article class="card profile-card"><div class="avatar">✦</div><h2>旅行练习者</h2><p>从上海出发 · 已坚持 4 天</p><div class="profile-list"><div class="profile-row"><span>连续学习</span><strong>4 天 🔥</strong></div><div class="profile-row"><span>完成场景</span><strong>2 / 12</strong></div><div class="profile-row"><span>累计练习</span><strong>18 分钟</strong></div></div></article></section>
+    <section class="view" id="profileView"><div class="intro"><div class="eyebrow">Your journey</div><h1>我的旅程。</h1><p>把每一次开口，变成下一次更自在的出发。</p></div><article class="card profile-card"><div class="avatar">✦</div><h2>旅行练习者</h2><p>你的学习记录只保存在本设备。</p><div class="profile-list"><div class="profile-row"><span>连续学习</span><strong id="profileStreak">1 天 🔥</strong></div><div class="profile-row"><span>完成课程</span><strong id="profileLessons">0 / 260</strong></div><div class="profile-row"><span>掌握句子</span><strong id="profileLearned">0 / 6760</strong></div><div class="profile-row"><span>累计练习</span><strong id="profileMinutes">0 分钟</strong></div></div></article><div class="section-head"><h2>设置</h2></div><div class="settings-list"><div class="setting-row"><div><strong>每日提醒</strong><span>每天提醒你完成一节课</span></div><button class="switch" id="reminderSwitch" data-action="toggleReminder" aria-label="切换每日提醒"></button></div><div class="setting-row"><div><strong>朗读声音</strong><span>点击句子旁的扬声器即可播放</span></div><button class="switch on" id="soundSwitch" data-action="toggleSound" aria-label="切换朗读声音"></button></div><div class="setting-row"><div><strong>导出学习记录</strong><span>下载一份 JSON 备份</span></div><button class="secondary-btn" data-action="export">导出</button></div><div class="setting-row"><div><strong>清除本机进度</strong><span>会删除收藏、掌握和练习记录</span></div><button class="secondary-btn" data-action="reset">清除</button></div></div></section>
 
-      <nav class="bottom-nav" aria-label="主导航"><button class="nav-item active" data-view="homeView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke-linejoin="round"/></svg><span>首页</span></button><button class="nav-item" data-view="practiceView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="m9 9 2 2 4-4M9 15h6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>练习</span></button><button class="nav-item" data-view="vocabView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v16H7.5A2.5 2.5 0 0 0 5 21.5v-16Z" stroke-linejoin="round"/><path d="M5 19h14" stroke-linecap="round"/></svg><span>词库</span></button><button class="nav-item" data-view="profileView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.5 3-5.5 7-5.5s6.3 2 7 5.5" stroke-linecap="round"/></svg><span>我的</span></button></nav>
-    </main>
+    <nav class="bottom-nav" aria-label="主导航"><button class="nav-item active" data-view="homeView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke-linejoin="round"/></svg><span>首页</span></button><button class="nav-item" data-view="coursesView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="m9 9 2 2 4-4M9 15h6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>课程</span></button><button class="nav-item" data-view="vocabView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v16H7.5A2.5 2.5 0 0 0 5 21.5v-16Z" stroke-linejoin="round"/><path d="M5 19h14" stroke-linecap="round"/></svg><span>词库</span></button><button class="nav-item" data-view="profileView"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.5 3-5.5 7-5.5s6.3 2 7 5.5" stroke-linecap="round"/></svg><span>我的</span></button></nav>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-backdrop" id="installModal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal"><h2 id="installTitle">把 roamly 放到主屏幕</h2><p>它是免费的 PWA，不需要 App Store。浏览器菜单中选择“添加到主屏幕”，下次可以离线打开课程。</p><button class="primary-btn" data-action="closeInstall" style="width:100%">知道了</button></div></div>
 
-    <div class="toast" id="toast" role="status"></div>
-    <div class="modal-backdrop" id="installModal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal"><div class="modal-handle"></div><h2 id="installTitle">把 roamly 放到主屏幕</h2><p>它是免费的 PWA，不需要 App Store。保存后，随时离线打开今天的练习。</p><div class="steps"><div class="step"><i>1</i><span>在 Safari 底部点击 <b>分享</b> 图标。</span></div><div class="step"><i>2</i><span>向下滑，选择 <b>添加到主屏幕</b>。</span></div><div class="step"><i>3</i><span>点击右上角 <b>添加</b>，下次从桌面直接进入。</span></div></div><button class="primary-btn" id="closeInstall" style="width:100%;margin-top:0">知道了</button></div></div>
-    <script>
-      const pairs = [
-        { id: 'latte', zh: '一杯拿铁，谢谢', en: "I'd like a latte, please." },
-        { id: 'recommend', zh: '你推荐什么？', en: 'What do you recommend?' },
-        { id: 'oat', zh: '可以换燕麦奶吗？', en: 'Could I have oat milk?' },
-        { id: 'bill', zh: '可以结账了吗？', en: 'Could we get the bill?' }
-      ];
-      const state = { score: Number(localStorage.getItem('roamly-score') || 0), matched: [], selected: null };
-      const toast = (msg) => { const el = document.querySelector('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window.__toast); window.__toast = setTimeout(() => el.classList.remove('show'), 2300); };
-      const showView = (id) => { document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id)); document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === id)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-      document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => showView(btn.dataset.view)));
-      const tiles = document.querySelector('#tiles');
-      function renderGame() {
-        state.matched = []; state.selected = null; document.querySelector('#gameScore').textContent = '0 / 4 配对';
-        const mixed = pairs.flatMap(pair => [{ type:'zh', ...pair }, { type:'en', ...pair }]).sort(() => Math.random() - .5);
-        tiles.innerHTML = mixed.map((item, index) => `<button class="tile" data-id="${item.id}" data-type="${item.type}" aria-label="${item.type === 'zh' ? item.zh : item.en}"><small>${item.type === 'zh' ? '中文' : 'English'}</small><b>${item.type === 'zh' ? item.zh : item.en}</b></button>`).join('');
-        tiles.querySelectorAll('.tile').forEach(tile => tile.addEventListener('click', () => selectTile(tile)));
-      }
-      function selectTile(tile) {
-        if (tile.classList.contains('matched')) return;
-        if (!state.selected) { state.selected = tile; tile.classList.add('selected'); return; }
-        if (state.selected === tile) { tile.classList.remove('selected'); state.selected = null; return; }
-        const first = state.selected;
-        if (first.dataset.id === tile.dataset.id && first.dataset.type !== tile.dataset.type) {
-          first.classList.remove('selected'); first.classList.add('matched'); tile.classList.add('matched'); state.matched.push(tile.dataset.id); state.selected = null;
-          document.querySelector('#gameScore').textContent = `${state.matched.length} / 4 配对`;
-          if (state.matched.length === pairs.length) { state.score = Math.max(state.score, 4); localStorage.setItem('roamly-score', state.score); toast('太棒了！这一组表达已加入词库'); document.querySelector('#progressFill').style.width = '64%'; document.querySelector('#progressText').textContent = '3 / 5 小节'; }
-        } else { first.classList.add('wrong'); tile.classList.add('wrong'); setTimeout(() => { first.classList.remove('wrong','selected'); tile.classList.remove('wrong'); }, 380); state.selected = null; }
-      }
-      renderGame();
-      document.querySelector('#resetGame').addEventListener('click', () => { renderGame(); toast('已重新洗牌'); });
-      document.querySelector('#continueBtn').addEventListener('click', () => { showView('practiceView'); toast('开始今天的 8 分钟练习'); });
-      document.querySelector('#coffeePath').addEventListener('click', () => showView('practiceView'));
-      document.querySelector('#showAllBtn').addEventListener('click', () => showView('vocabView'));
-      document.querySelector('#notifyBtn').addEventListener('click', () => toast('每日提醒已开启，明天见 ✦'));
-      const modal = document.querySelector('#installModal');
-      document.querySelector('#installBtn').addEventListener('click', () => modal.classList.add('show'));
-      document.querySelector('#closeInstall').addEventListener('click', () => modal.classList.remove('show'));
-      modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('show'); });
+  <script src="content.js"></script>
+  <script>
+    (() => {
+      const content = window.RoamlyContent;
+      const KEY = 'roamly-course-state-v3';
+      const defaults = { completed: [], learned: [], favorites: [], minutes: 0, streak: 1, correct: 0, answered: 0, currentSceneId: 'cafe', currentLessonId: 'cafe-1', settings: { reminders: false, sound: true } };
+      let state = JSON.parse(localStorage.getItem(KEY) || 'null') || defaults;
+      state = { ...defaults, ...state, settings: { ...defaults.settings, ...(state.settings || {}) } };
+      let vocabTab = 'all';
+      let practice = null;
+      const $ = (selector) => document.querySelector(selector);
+      const sceneById = (id) => content.scenes.find((scene) => scene.id === id) || content.scenes[0];
+      const lessonById = (sceneId, id) => sceneById(sceneId).lessons.find((lesson) => lesson.id === id) || sceneById(sceneId).lessons[0];
+      const allSentences = () => content.scenes.flatMap((scene) => scene.lessons.flatMap((lesson) => lesson.sentences));
+      const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+      const toast = (message) => { const el = $('#toast'); el.textContent = message; el.classList.add('show'); clearTimeout(window.__roamlyToast); window.__roamlyToast = setTimeout(() => el.classList.remove('show'), 2200); };
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
+      const isDone = (lessonId) => state.completed.includes(lessonId);
+      const isFavorite = (sentenceId) => state.favorites.includes(sentenceId);
+      const isLearned = (sentenceId) => state.learned.includes(sentenceId);
+      function showView(id) { document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.id === id)); document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.view === id)); window.scrollTo({ top:0, behavior:'smooth' }); }
+      function sceneCard(scene) { const done = scene.lessons.filter((lesson) => isDone(lesson.id)).length; return `<button class="scene-card" data-action="openScene" data-scene="${scene.id}" style="--scene-color:${scene.color}"><span class="scene-icon">${scene.icon}</span><h3>${scene.title}</h3><p>${scene.description}</p><span class="scene-meta"><span>${done} / 20 节完成</span><span>520 句</span></span></button>`; }
+      function renderStats() { const completed = state.completed.length; const learned = state.learned.length; const percent = completed ? Math.round((state.correct / Math.max(1, state.answered)) * 100) : 0; $('#homeProgressText').textContent = `${completed} / ${content.lessonCount} 节`; $('#homeProgressFill').style.width = `${Math.min(100, completed / content.lessonCount * 100)}%`; $('#homeLearned').textContent = learned.toLocaleString(); $('#homeMinutes').textContent = `${state.minutes}m`; $('#homeAccuracy').textContent = state.answered ? `${percent}%` : '—'; $('#streakValue').textContent = state.streak; $('#profileStreak').textContent = `${state.streak} 天 🔥`; $('#profileLessons').textContent = `${completed} / ${content.lessonCount}`; $('#profileLearned').textContent = `${learned.toLocaleString()} / ${content.sentenceCount.toLocaleString()}`; $('#profileMinutes').textContent = `${state.minutes} 分钟`; $('#reminderSwitch').classList.toggle('on', state.settings.reminders); $('#soundSwitch').classList.toggle('on', state.settings.sound); }
+      function renderHome() { const scene = sceneById(state.currentSceneId); const lesson = lessonById(scene.id, state.currentLessonId); $('#todayTitle').textContent = `${scene.title} · ${lesson.title}`; $('#todayDesc').textContent = `${lesson.topic}：26 句真实场景表达，学完即可练习。`; $('#homeScenes').innerHTML = content.scenes.map(sceneCard).join(''); renderStats(); }
+      function renderCourses() { const query = ($('#courseSearch')?.value || '').trim().toLowerCase(); const list = content.scenes.filter((scene) => `${scene.title}${scene.description}${scene.shortTitle}`.toLowerCase().includes(query)); $('#courseGrid').innerHTML = list.length ? list.map(sceneCard).join('') : '<div class="empty">没有找到这个场景，换个关键词试试。</div>'; }
+      function renderScene(sceneId) { const scene = sceneById(sceneId); state.currentSceneId = scene.id; save(); const done = scene.lessons.filter((lesson) => isDone(lesson.id)).length; $('#courseDetail').innerHTML = `<div class="course-detail-head"><button class="back-btn" data-action="courses" aria-label="返回课程"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="scene-icon">${scene.icon}</span><div><div class="eyebrow">${scene.shortTitle} · ${done}/20</div><h1>${scene.title}</h1><p>${scene.description} 每节 26 句，完成后会自动记录进度。</p></div></div><div class="progress-row"><span>场景进度</span><strong>${done} / 20 节</strong></div><div class="progress-track"><div class="progress-fill" style="width:${done / 20 * 100}%"></div></div><div class="section-head"><h2>20 节完整课程</h2><span class="muted" style="font-size:12px">共 520 句</span></div><div class="lesson-list">${scene.lessons.map((lesson) => `<div class="lesson-row ${isDone(lesson.id) ? 'done' : ''}"><span class="lesson-number">${isDone(lesson.id) ? '✓' : String(lesson.index + 1).padStart(2, '0')}</span><div><strong>${lesson.title}</strong><span>${lesson.topic} · 26 句</span></div><button class="open-lesson" data-action="openLesson" data-scene="${scene.id}" data-lesson="${lesson.id}">${isDone(lesson.id) ? '复习' : '开始'}</button></div>`).join('')}</div>`; showView('courseDetailView'); }
+      function sentenceCard(sentence) { return `<article class="card sentence-card"><div class="sentence-top"><div><div class="en">${escapeHtml(sentence.en)}</div><div class="zh">${escapeHtml(sentence.zh)}</div><div class="tip">${escapeHtml(sentence.tip)}</div></div><div class="sentence-tools"><button class="mini-btn ${isFavorite(sentence.id) ? 'active' : ''}" data-action="favorite" data-sentence="${sentence.id}" aria-label="收藏句子">${isFavorite(sentence.id) ? '★' : '☆'}</button><button class="mini-btn" data-action="say" data-text="${escapeHtml(sentence.en)}" aria-label="朗读句子">◖</button></div></div></article>`; }
+      function renderLesson(sceneId, lessonId) { const scene = sceneById(sceneId); const lesson = lessonById(scene.id, lessonId); state.currentSceneId = scene.id; state.currentLessonId = lesson.id; save(); $('#lessonDetail').innerHTML = `<div class="lesson-hero"><div class="row-between"><button class="back-btn" data-action="openScene" data-scene="${scene.id}" aria-label="返回场景"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="muted" style="font-size:12px">${lesson.index + 1} / 20</span></div><div class="eyebrow" style="margin-top:17px">${scene.icon} ${scene.title}</div><h1>${lesson.title}</h1><p>${lesson.topic} · 本课 26 句。先浏览表达，再开始 10 题练习。</p><div class="lesson-actions"><button class="primary-btn" data-action="practice" data-scene="${scene.id}" data-lesson="${lesson.id}">开始练习</button><button class="secondary-btn" data-action="markLesson" data-lesson="${lesson.id}">${isDone(lesson.id) ? '已完成 · 再标记' : '标记完成'}</button></div></div><div class="section-head"><h2>本课表达</h2><span class="muted" style="font-size:12px">${lesson.sentences.length} 句</span></div><div class="sentence-list">${lesson.sentences.map(sentenceCard).join('')}</div>`; showView('lessonView'); }
+      function makePractice(sceneId, lessonId) { const lesson = lessonById(sceneId, lessonId); const questions = lesson.sentences.slice(0, 10).map((sentence) => { const distractors = lesson.sentences.filter((item) => item.id !== sentence.id).sort(() => Math.random() - .5).slice(0, 3); return { sentence, options: [sentence, ...distractors].sort(() => Math.random() - .5) }; }); practice = { sceneId, lessonId, questions, index:0, score:0, answered:false }; }
+      function renderPractice() { if (!practice) makePractice(state.currentSceneId, state.currentLessonId); const lesson = lessonById(practice.sceneId, practice.lessonId); const question = practice.questions[practice.index]; if (!question) { finishPractice(); return; } const percent = practice.index / practice.questions.length * 100; $('#practiceDetail').innerHTML = `<div class="lesson-hero"><div class="row-between"><button class="back-btn" data-action="openLesson" data-scene="${practice.sceneId}" data-lesson="${practice.lessonId}" aria-label="返回课程"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="muted" style="font-size:12px">${practice.index + 1} / ${practice.questions.length}</span></div><div class="eyebrow" style="margin-top:17px">练习 · ${lesson.title}</div><h1>听懂，再开口。</h1><p>选择最匹配的英文表达，完成后会记录你的正确率。</p></div><article class="card practice-card"><div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div><div class="practice-q"><span class="label">请选出这句话的英文</span><h2>“${escapeHtml(question.sentence.zh)}”</h2><p>${escapeHtml(question.sentence.tip)}</p></div><div class="answer-list">${question.options.map((option) => `<button class="answer" data-action="answer" data-answer="${option.id}">${escapeHtml(option.en)}</button>`).join('')}</div><div class="feedback" id="practiceFeedback"></div></article>`; showView('practiceView'); }
+      function answerPractice(answerId) { if (!practice || practice.answered) return; const question = practice.questions[practice.index]; const correct = answerId === question.sentence.id; practice.answered = true; state.answered += 1; if (correct) { practice.score += 1; state.correct += 1; } save(); document.querySelectorAll('.answer').forEach((button) => { if (button.dataset.answer === question.sentence.id) button.classList.add('correct'); if (!correct && button.dataset.answer === answerId) button.classList.add('wrong'); }); const feedback = $('#practiceFeedback'); feedback.textContent = correct ? '答对了！继续保持。' : `正确答案：${question.sentence.en}`; feedback.className = `feedback ${correct ? 'good' : 'bad'}`; const footer = document.createElement('div'); footer.className = 'lesson-actions'; footer.style.justifyContent = 'center'; footer.innerHTML = `<button class="primary-btn" data-action="nextQuestion">${practice.index === practice.questions.length - 1 ? '完成练习' : '下一句'}</button>`; $('#practiceDetail').querySelector('.practice-card').appendChild(footer); }
+      function nextQuestion() { if (!practice) return; practice.index += 1; practice.answered = false; renderPractice(); }
+      function finishPractice() { if (!practice) return; const sceneId = practice.sceneId; const lessonId = practice.lessonId; const lesson = lessonById(sceneId, lessonId); if (!state.completed.includes(lesson.id)) state.completed.push(lesson.id); lesson.sentences.slice(0, 10).forEach((sentence) => { if (!state.learned.includes(sentence.id)) state.learned.push(sentence.id); }); state.minutes += 8; const score = practice.score; practice = null; save(); renderStats(); toast(`练习完成：${score} / 10，已保存进度`); renderLesson(sceneId, lesson.id); }
+      function renderVocab() { const query = ($('#vocabSearch')?.value || '').trim().toLowerCase(); let list = allSentences(); if (vocabTab === 'favorites') list = list.filter((sentence) => isFavorite(sentence.id)); if (vocabTab === 'learned') list = list.filter((sentence) => isLearned(sentence.id)); if (query) list = list.filter((sentence) => `${sentence.en}${sentence.zh}`.toLowerCase().includes(query)); $('#vocabList').innerHTML = list.length ? list.slice(0, 80).map(sentenceCard).join('') : `<div class="empty">${vocabTab === 'favorites' ? '还没有收藏句子。' : vocabTab === 'learned' ? '完成练习后，掌握的句子会出现在这里。' : '没有找到匹配句子。'}</div>`; }
+      function toggleFavorite(id) { state.favorites = state.favorites.includes(id) ? state.favorites.filter((item) => item !== id) : [...state.favorites, id]; save(); const activeView = document.querySelector('.view.active')?.id; if (activeView === 'vocabView') renderVocab(); if (activeView === 'lessonView') renderLesson(state.currentSceneId, state.currentLessonId); toast(state.favorites.includes(id) ? '已加入收藏' : '已取消收藏'); }
+      function markLesson(lessonId) { if (!state.completed.includes(lessonId)) state.completed.push(lessonId); save(); renderStats(); renderLesson(state.currentSceneId, lessonId); toast('课程已标记完成'); }
+      function speak(text) { if (!state.settings.sound) { toast('朗读声音已关闭'); return; } if (!('speechSynthesis' in window)) { toast('当前浏览器不支持朗读'); return; } window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.rate = .9; window.speechSynthesis.speak(utterance); }
+      function exportProgress() { const blob = new Blob([JSON.stringify({ exportedAt:new Date().toISOString(), state, courseStats:{ scenes:content.sceneCount, lessons:content.lessonCount, sentences:content.sentenceCount } }, null, 2)], { type:'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'roamly-learning-progress.json'; link.click(); URL.revokeObjectURL(link.href); toast('学习记录已导出'); }
+      function resetProgress() { if (!window.confirm('确定清除本设备上的学习记录吗？')) return; state = { ...defaults, settings: { ...defaults.settings } }; practice = null; save(); renderHome(); renderCourses(); renderStats(); toast('学习记录已清除'); }
+      document.addEventListener('click', (event) => { const target = event.target.closest('[data-action],[data-view],[data-vocab-tab]'); if (!target) return; if (target.dataset.view) { showView(target.dataset.view); if (target.dataset.view === 'coursesView') renderCourses(); if (target.dataset.view === 'vocabView') renderVocab(); return; } if (target.dataset.vocabTab) { vocabTab = target.dataset.vocabTab; document.querySelectorAll('[data-vocab-tab]').forEach((button) => button.classList.toggle('active', button.dataset.vocabTab === vocabTab)); renderVocab(); return; } const action = target.dataset.action; if (action === 'home') { renderHome(); showView('homeView'); } else if (action === 'courses') { renderCourses(); showView('coursesView'); } else if (action === 'openScene') renderScene(target.dataset.scene); else if (action === 'openLesson') renderLesson(target.dataset.scene, target.dataset.lesson); else if (action === 'continue') renderLesson(state.currentSceneId, state.currentLessonId); else if (action === 'practice') { makePractice(target.dataset.scene, target.dataset.lesson); renderPractice(); } else if (action === 'answer') answerPractice(target.dataset.answer); else if (action === 'nextQuestion') nextQuestion(); else if (action === 'favorite') toggleFavorite(target.dataset.sentence); else if (action === 'say') speak(target.dataset.text); else if (action === 'markLesson') markLesson(target.dataset.lesson); else if (action === 'install') $('#installModal').classList.add('show'); else if (action === 'closeInstall') $('#installModal').classList.remove('show'); else if (action === 'reminder' || action === 'toggleReminder') { state.settings.reminders = !state.settings.reminders; save(); renderStats(); toast(state.settings.reminders ? '每日提醒已开启' : '每日提醒已关闭'); } else if (action === 'toggleSound') { state.settings.sound = !state.settings.sound; save(); renderStats(); toast(state.settings.sound ? '朗读声音已开启' : '朗读声音已关闭'); } else if (action === 'export') exportProgress(); else if (action === 'reset') resetProgress(); });
+      $('#courseSearch').addEventListener('input', renderCourses); $('#vocabSearch').addEventListener('input', renderVocab); $('#installModal').addEventListener('click', (event) => { if (event.target.id === 'installModal') $('#installModal').classList.remove('show'); });
+      renderHome(); renderCourses(); renderVocab(); renderStats();
       if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-    </script>
-  </body>
+    })();
+  </script>
+</body>
 </html>
